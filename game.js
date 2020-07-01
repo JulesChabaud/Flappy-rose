@@ -1,18 +1,18 @@
 // JAVASCRIPT CODE //
 
-// SELECT CVS
+// SELECT CANVAS
 const cvs = document.getElementById("bird");
 const ctx = cvs.getContext("2d");
 
-// GAME VARS AND CONSTS
+// VARS ET CONST
 let frames = 0;
 const DEGREE = Math.PI/180;
 
-// LOAD SPRITE IMAGE
+// CHARGER LE SPRITE
 const sprite = new Image();
 sprite.src = "img/sprite-propre.png";
 
-// LOAD SOUNDS
+// CHARGER LES SONS
 const SCORE_S = new Audio();
 SCORE_S.src = "audio/sfx_point.wav";
 
@@ -36,7 +36,7 @@ const state = {
     over : 2
 }
 
-// START BUTTON COORD
+// COORDONNEES DU BOUTON START
 const startBtn = {
     x : 120,
     y : 263,
@@ -44,7 +44,7 @@ const startBtn = {
     h : 29
 }
 
-// CONTROL THE GAME
+// CONTROLS (EVENT CLICK & KEYDOWN)
 cvs.addEventListener("click", function(evt){
     switch(state.current){
         case state.getReady:
@@ -61,7 +61,7 @@ cvs.addEventListener("click", function(evt){
             let clickX = evt.clientX - rect.left;
             let clickY = evt.clientY - rect.top;
 
-            // CHECK IF WE CLICK ON THE START BUTTON
+            // "HITBOX" BOUTTON START
             if(clickX >= startBtn.x && clickX <= startBtn.x + startBtn.w && clickY >= startBtn.y && clickY <= startBtn.y + startBtn.h){
                 pipes.reset();
                 bird.speedReset();
@@ -105,7 +105,7 @@ const bg = {
 // FOREGROUND
 const fg = {
     sX: 286,
-    sY: 428,
+    sY: 439,
     w: 320,
     h: 116,
     x: 0,
@@ -126,7 +126,7 @@ const fg = {
     }
 }
 
-// BIRD
+// BIRD (ROSE)
 const bird = {
     animation : [
         {sX: 412, sY : 115},
@@ -146,7 +146,6 @@ const bird = {
     gravity : 0.2, //------------ Set gravity, force a la quelle le bird descend
     jump : 4.6, //---------------- Set speed, force a la quelle le bird remonte
     speed : 0, // ---------------- Set speed, le bird ne bouge pas en state 0
-    rotation : 0,
 
     draw : function(){
         let bird = this.animation[this.frame];
@@ -163,34 +162,29 @@ const bird = {
     },
 
     update: function(){
-        // IF THE GAME STATE IS GET READY STATE, THE BIRD MUST FLAP SLOWLY
+        // VITESSE ANIMATION EN FONCTION DE LA GAME STATE
         this.period = state.current == state.getReady ? 10 : 5;
-        // WE INCREMENT THE FRAME BY 1, EACH PERIOD
+        // INCREMENTATION FRAME PAR FRAME
         this.frame += frames%this.period == 0 ? 1 : 0;
-        // FRAME GOES FROM 0 To 4, THEN AGAIN TO 0
+        // LOOP DES FRAMES (0 -> 4 ; 4 -> 0)
         this.frame = this.frame%this.animation.length;
 
         if(state.current == state.getReady){ // -------- le bird ne bouge pas en state 0
-            this.y = 150; // RESET POSITION OF THE BIRD AFTER GAME OVER
+            this.y = 150; // RESET LA POSITION DU BIRD QUAND GAMEOVER
         }else{
             this.speed += this.gravity;
             this.y += this.speed;
 
             if(this.y + this.h/2 >= cvs.height - fg.h){ // ---- Set hitboxes + collision
                 this.y = cvs.height - fg.h - this.h/2;
+                this.frame = 2; // --- Quand la hitbox du bird touche quelque chose l'animation se stop a la frame 1
                 if(state.current == state.game){
                     state.current = state.over;
+
                     DIE.play();
                 }
             }
 
-            // IF THE SPEED IS GREATER THAN THE JUMP MEANS THE BIRD IS FALLING DOWN
-            if(this.speed >= this.jump){
-                this.rotation = 90 * DEGREE;
-                this.frame = 1;
-            }else{
-                this.rotation = -25 * DEGREE;
-            }
         }
 
     },
@@ -199,7 +193,7 @@ const bird = {
     }
 }
 
-// GET READY MESSAGE
+// GET READY POP UP
 const getReady = {
     sX : 0,
     sY : 228,
@@ -216,7 +210,7 @@ const getReady = {
 
 }
 
-// GAME OVER MESSAGE
+// GAME OVER POP UP
 const gameOver = {
     sX : 175,
     sY : 228,
@@ -248,9 +242,9 @@ const pipes = {
 
     w : 53,
     h : 400,
-    gap : 120,
+    gap : 120, // -------- gap entre les pipes
     maxYPos : -150,
-    dx : 2,
+    dx : 2, // ----------- vitesse a la quelle les pipe se deplace vers la gauche (2 px)
 
     draw : function(){
         for(let i  = 0; i < this.position.length; i++){
@@ -259,10 +253,10 @@ const pipes = {
             let topYPos = p.y;
             let bottomYPos = p.y + this.h + this.gap;
 
-            // top pipe
+            // PIPE NORTH
             ctx.drawImage(sprite, this.top.sX, this.top.sY, this.w, this.h, p.x, topYPos, this.w, this.h);
 
-            // bottom pipe
+            // PIPE SOUTH
             ctx.drawImage(sprite, this.bottom.sX, this.bottom.sY, this.w, this.h, p.x, bottomYPos, this.w, this.h);
         }
     },
@@ -273,7 +267,7 @@ const pipes = {
         if(frames%100 == 0){
             this.position.push({
                 x : cvs.width,
-                y : this.maxYPos * ( Math.random() + 1)
+                y : this.maxYPos * ( Math.random() + 1) // ------ les pipes spawnent avec un axe Y random
             });
         }
         for(let i = 0; i < this.position.length; i++){
@@ -281,22 +275,22 @@ const pipes = {
 
             let bottomPipeYPos = p.y + this.h + this.gap;
 
-            // COLLISION DETECTION
-            // TOP PIPE
+            // COLLISION
+            // PIPE NORTH
             if(bird.x + bird.radius > p.x && bird.x - bird.radius < p.x + this.w && bird.y + bird.radius > p.y && bird.y - bird.radius < p.y + this.h){
                 state.current = state.over;
                 HIT.play();
             }
-            // BOTTOM PIPE
+            // PIPE SOUTH
             if(bird.x + bird.radius > p.x && bird.x - bird.radius < p.x + this.w && bird.y + bird.radius > bottomPipeYPos && bird.y - bird.radius < bottomPipeYPos + this.h){
                 state.current = state.over;
                 HIT.play();
             }
 
-            // MOVE THE PIPES TO THE LEFT
+            // DEPLACEMENT PIPE
             p.x -= this.dx;
 
-            // if the pipes go beyond canvas, we delete them from the array
+            // SI LA PIPE SORT DU CANVAS ELLE EST SUPPRIMER
             if(p.x + this.w <= 0){
                 this.position.shift();
                 score.value += 1;
