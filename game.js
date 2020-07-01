@@ -28,6 +28,9 @@ SWOOSHING.src = "audio/sfx_swooshing.wav";
 const DIE = new Audio();
 DIE.src = "audio/sfx_die.wav";
 
+const LAUGH = new Audio();
+LAUGH.src = "audio/goku-troll-laugh.wav";
+
 // GAME STATE
 const state = {
     current : 0,
@@ -139,7 +142,7 @@ const bird = {
     w : 88,
     h : 65,
 
-    radius : 12,
+    radius : 15,
 
     frame : 0, // ---------------- Starting frame
 
@@ -181,7 +184,8 @@ const bird = {
                 if(state.current == state.game){
                     state.current = state.over;
 
-                    DIE.play();
+                    HIT.play();
+                    LAUGH.play();
                 }
             }
 
@@ -243,7 +247,7 @@ const pipes = {
     w : 53,
     h : 400,
     gap : 120, // -------- gap entre les pipes
-    maxYPos : -150,
+    maxYPos : -180,
     dx : 2, // ----------- vitesse a la quelle les pipe se deplace vers la gauche (2 px)
 
     draw : function(){
@@ -280,11 +284,13 @@ const pipes = {
             if(bird.x + bird.radius > p.x && bird.x - bird.radius < p.x + this.w && bird.y + bird.radius > p.y && bird.y - bird.radius < p.y + this.h){
                 state.current = state.over;
                 HIT.play();
+                LAUGH.play();
             }
             // PIPE SOUTH
             if(bird.x + bird.radius > p.x && bird.x - bird.radius < p.x + this.w && bird.y + bird.radius > bottomPipeYPos && bird.y - bird.radius < bottomPipeYPos + this.h){
                 state.current = state.over;
                 HIT.play();
+                LAUGH.play();
             }
 
             // DEPLACEMENT PIPE
